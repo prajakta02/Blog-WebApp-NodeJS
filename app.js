@@ -4,11 +4,10 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const ejs = require("ejs");
 const _= require("lodash");
+const mongoose=require("mongoose");
 
-const homeStartingContent = "Lacus vel facilisis volutpat est velit egestas dui id ornare. Semper auctor neque vitae tempus quam. Sit amet cursus sit amet dictum sit amet justo. Viverra tellus in hac habitasse. Imperdiet proin fermentum leo vel orci porta. Donec ultrices tincidunt arcu non sodales neque sodales ut. Mattis molestie a iaculis at erat pellentesque adipiscing. Magnis dis parturient montes nascetur ridiculus mus mauris vitae ultricies. Adipiscing elit ut aliquam purus sit amet luctus venenatis lectus. Ultrices vitae auctor eu augue ut lectus arcu bibendum at. Odio euismod lacinia at quis risus sed vulputate odio ut. Cursus mattis molestie a iaculis at erat pellentesque adipiscing.";
-const aboutContent = "Hac habitasse platea dictumst vestibulum rhoncus est pellentesque. Dictumst vestibulum rhoncus est pellentesque elit ullamcorper. Non diam phasellus vestibulum lorem sed. Platea dictumst quisque sagittis purus sit. Egestas sed sed risus pretium quam vulputate dignissim suspendisse. Mauris in aliquam sem fringilla. Semper risus in hendrerit gravida rutrum quisque non tellus orci. Amet massa vitae tortor condimentum lacinia quis vel eros. Enim ut tellus elementum sagittis vitae. Mauris ultrices eros in cursus turpis massa tincidunt dui.";
-const contactContent = "Scelerisque eleifend donec pretium vulputate sapien. Rhoncus urna neque viverra justo nec ultrices. Arcu dui vivamus arcu felis bibendum. Consectetur adipiscing elit duis tristique. Risus viverra adipiscing at in tellus integer feugiat. Sapien nec sagittis aliquam malesuada bibendum arcu vitae. Consequat interdum varius sit amet mattis. Iaculis nunc sed augue lacus. Interdum posuere lorem ipsum dolor sit amet consectetur adipiscing elit. Pulvinar elementum integer enim neque. Ultrices gravida dictum fusce ut placerat orci nulla. Mauris in aliquam sem fringilla ut morbi tincidunt. Tortor posuere ac ut consequat semper viverra nam libero.";
-
+const homeStartingContent = "Tech Talks mostly shares articles and guides related to new gadgets such as TV, mobile, tablets, laptops and gaming devices as well. Apart from this it also covers podcasts, videos and photos related to latest technology trends. Also, it comes really handy for comparing websites or new gadgets at the same time on this website easily. You will surely be going to get a lot of valuable information through reading this website on the daily basis.";
+const aboutContent = "Tech Talks is the definitive guide to this connected life.Technology isn't all about bits and processors. It's the car with no driver, human organs printed in a lab and leisurely flights into space. It's the future and we're here to tell you all about it. Since 2021, Tech Talks has exhaustively covered cutting edge devices and the technology that powers them. As we enter our second decade, we're looking beyond the gadgets themselves to explore how they impact our lives.";
 const app = express();
 
 app.set('view engine', 'ejs');
@@ -16,13 +15,22 @@ app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(express.static("public"));
 
-let arr=[];
+mongoose.connect("mongodb+srv://admin-prashant:Test123@cluster0.xqu7s.mongodb.net/blogDB",{useNewUrlParser:true});
+
+const itemSchema={
+  name:String,
+  content:String
+};
+
+const Tile=mongoose.model("Tile",itemSchema);
+
 
 app.get("/",function(req,res) {
-  res.render('home',{startCon:homeStartingContent,
-   posts:arr,
+  Tile.find({},function(err,posts) {
+    res.render('home',{startCon:homeStartingContent,
+     posts:posts,
+    });
   });
-
 });
 
 app.get("/about",function(req,res) {
@@ -30,42 +38,35 @@ app.get("/about",function(req,res) {
 });
 
 app.get("/contact",function(req,res) {
-  res.render('contact',{cont:contactContent});
+  res.render('contact');
 });
 
 app.get("/compose",function(req,res) {
   res.render('compose');
 });
 
-app.get("/posts/:anpost",function(req,res) {
-  parm=_.lowerCase(req.params.anpost);
+app.get("/posts/:postId",function(req,res) {
+  parm=req.params.postId;
 
-  arr.forEach((post) => {
-    if(parm===_.lowerCase(post.title))
-     {
-       res.render('post',{
-         title:post.title,
-         cxt:post.content
-       });
-     }
-  });
+ Tile.findOne({_id:parm},function(err,post) {
+     res.render('post',{
+          title:post.name,
+          cxt:post.content
+        });
+ });
 
-
-
-})
-
-app.post("/compose",function(req,res) {
-  let inp=req.body.text;
-  let cont=req.body.postbody;
-  let post={
-    title:inp,
-    content:cont
-  };
-  arr.push(post);
-  res.redirect("/");
 });
 
-
+app.post("/compose",function(req,res) {
+  const inp=req.body.title;
+  const cont=req.body.postbody;
+  const item1=new Tile({
+    name:inp,
+    content:cont
+  });
+  item1.save();
+  res.redirect("/");
+});
 
 
 app.listen(3000, function() {

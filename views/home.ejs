@@ -6,11 +6,9 @@
 <p><%= startCon %></p>
 
 <%   posts.forEach((post) => {  %>
-<%    let x=(post.title);   %>
+<%    let x=(post.name);   %>
 <%    let y=((post.content).substring(0,100));   %>
 <h2>   <%= x %>  </h2>
-<p>   <%= y +" ..." %> <a href="/posts/<%= post.title %>">Read Moree</a></p>
+<p>   <%= y +" ..." %> <a href="/posts/<%= post._id %>">Read Moree</a></p>
 <%     });      %>
-
-
 <%- include('partials/footer'); -%>
